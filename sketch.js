@@ -47,7 +47,7 @@ function setup(){
 }
 
 function handleDelayChange(event){
-    getColorCycler().changeDelay((event.deltaY)/20)
+    getColorCycler().changeDelay((event.deltaY)/10)
 }
 
 function setupObjects(){
@@ -129,24 +129,25 @@ function drawTextBox(){
     stroke(0)
     if(colorMode == GRAYSCALE_CODE){
         textSize(15);
-        text("GRAYSCALE",CANVAS_WIDTH+SIDEBAR_WIDTH/2,TEXTBOX_HEIGHT/2)
+        text("GRAYSCALE",CANVAS_WIDTH+SIDEBAR_WIDTH/2,TEXTBOX_HEIGHT/4)
     }
     else if(colorMode == RGB_CODE){
         textSize(25);
-        text("RGB",CANVAS_WIDTH+SIDEBAR_WIDTH/2,TEXTBOX_HEIGHT/2)
+        text("RGB",CANVAS_WIDTH+SIDEBAR_WIDTH/2,TEXTBOX_HEIGHT/4)
     }
     else if(colorMode == WARM_CODE){
         textSize(25);
-        text("WARM",CANVAS_WIDTH+SIDEBAR_WIDTH/2,TEXTBOX_HEIGHT/2)
+        text("WARM",CANVAS_WIDTH+SIDEBAR_WIDTH/2,TEXTBOX_HEIGHT/4)
     }
     else if(colorMode == COOL_CODE){
         textSize(25);
-        text("COOL",CANVAS_WIDTH+SIDEBAR_WIDTH/2,TEXTBOX_HEIGHT/2)
+        text("COOL",CANVAS_WIDTH+SIDEBAR_WIDTH/2,TEXTBOX_HEIGHT/4)
     }
     else{
         textSize(20);
-        text("CUSTOM",CANVAS_WIDTH+SIDEBAR_WIDTH/2,TEXTBOX_HEIGHT/2)
+        text("CUSTOM",CANVAS_WIDTH+SIDEBAR_WIDTH/2,TEXTBOX_HEIGHT/4)
     }
+    text(this.getColorCycler().getDelay(),CANVAS_WIDTH+SIDEBAR_WIDTH/2,TEXTBOX_HEIGHT*3/4)
 }
 
 function handleCollisions(){
@@ -191,21 +192,6 @@ function isCollisionRectangle(x1,width1,y1,height1,x2,width2,y2,height2){
 function isCollisionCircle(x1,y1,r1,x2,y2,r2){
     return sqrt((x1-x2)*(x1-x2)+(y1-y2)*(y1-y2)) < r1+r2;
 }
-
-var lastScrollTop = 0;
-function addScrollFunctions(upScrollFunction, downScrollFunction){
-    window.addEventListener("scroll", function(){ // or window.addEventListener("scroll"....
-    var st = window.pageYOffset || document.documentElement.scrollTop; // Credits: "https://github.com/qeremy/so/blob/master/so.dom.js#L426"
-    if (st > lastScrollTop){
-        console.log("DownScroll")
-    } else {
-        console.log("Upscroll")
-    }
-    lastScrollTop = st <= 0 ? 0 : st; // For Mobile or negative scrolling
-    }, false);
-
-}
-
 
 class PhysicsObject{
 
@@ -261,7 +247,7 @@ class ColorCycler{
         this.delay = delay
         this.currentColor = this.colors[0];
         this.currentIndex = 0;
-        this.MIN_DELAY = 25
+        this.MIN_DELAY = 20
         this.MAX_DELAY = 2000
         this.updateNextColor();
     }
@@ -272,6 +258,10 @@ class ColorCycler{
 
     getColors(){
         return this.colors
+    }
+
+    getDelay(){
+        return this.delay
     }
 
     getColorDelay(delay){
