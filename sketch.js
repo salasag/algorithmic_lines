@@ -111,6 +111,7 @@ function drawObjects(){
     });
     drawColorBar();
     drawTextBox();
+    drawCover();
 }
 
 function drawColorBar(){
@@ -148,6 +149,17 @@ function drawTextBox(){
         text("CUSTOM",CANVAS_WIDTH+SIDEBAR_WIDTH/2,TEXTBOX_HEIGHT/4)
     }
     text(this.getColorCycler().getDelay(),CANVAS_WIDTH+SIDEBAR_WIDTH/2,TEXTBOX_HEIGHT*3/4)
+}
+
+function drawCover(){
+    if(mouseX < CANVAS_WIDTH){
+        noStroke();
+        fill(currentColor)
+        rect(CANVAS_WIDTH,0,SIDEBAR_WIDTH,CANVAS_HEIGHT);
+    }
+    else if(pmouseX < CANVAS_WIDTH){
+        colorPicker.draw()
+    }
 }
 
 function handleCollisions(){
