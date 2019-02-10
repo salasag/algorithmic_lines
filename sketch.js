@@ -61,7 +61,7 @@ function initColor(){
         [100,255,255],
         [100,100,255],
         [255,100,255]
-    ],250);
+    ],500);
     colorCyclers[WARM_CODE]=new ColorCycler([
         [255,100,100],
         [255,255,100]
@@ -71,7 +71,7 @@ function initColor(){
         [100,255,255],
         [100,100,255],
         [255,100,255]
-    ],300);
+    ],500);
 }
 
 function getNewColor(){
