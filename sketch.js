@@ -29,17 +29,25 @@ let colorBarHeight = TEXTBOX_HEIGHT
 let colorPicker;
 let colorCycleBuilder;
 let COLORCYCLEBUILDER_HEIGHT = COLORPICKER_HEIGHT;
+let cursorSize = 10;
+let cnv;
 
 function setup(){
     CANVAS_HEIGHT = windowHeight;
     CANVAS_WIDTH  = windowWidth-SIDEBAR_WIDTH;
-    createCanvas(CANVAS_WIDTH+SIDEBAR_WIDTH,CANVAS_HEIGHT);
+    cnv = createCanvas(CANVAS_WIDTH+SIDEBAR_WIDTH,CANVAS_HEIGHT);
+    cnv.mouseWheel(handleDelayChange);
     frameRate(FPS);
     textAlign(CENTER, CENTER);
     background(255);
     setupObjects();
     initColor()
+    cursor(CROSS)
     fill(0);
+}
+
+function handleDelayChange(event){
+    getColorCycler().changeDelay((event.deltaY)/20)
 }
 
 function setupObjects(){
@@ -75,21 +83,23 @@ function initColor(){
 }
 
 function getNewColor(){
+    getColorCycler().cycleColor();
+    currentColor = getColorCycler().getColor();
+}
+
+function getColorCycler(){
     if(colorMode==CUSTOM_CODE){
-        let cycler = colorCycleBuilder.getColorCycler()
-        cycler.cycleColor();
-        currentColor = cycler.getColor()
+        return colorCycleBuilder.getColorCycler()
     }
     else{
-        colorCyclers[colorMode].cycleColor()
-        currentColor = colorCyclers[colorMode].getColor()
+        return colorCyclers[colorMode]
     }
 }
 
 function draw(){
-    drawObjects();
     handleMouseClick();
     handleCollisions();
+    drawObjects();
     getNewColor();
     isMousePreviouslyPressed = mouseIsPressed;
 }
@@ -251,6 +261,8 @@ class ColorCycler{
         this.delay = delay
         this.currentColor = this.colors[0];
         this.currentIndex = 0;
+        this.MIN_DELAY = 25
+        this.MAX_DELAY = 2000
         this.updateNextColor();
     }
 
@@ -262,7 +274,7 @@ class ColorCycler{
         return this.colors
     }
 
-    getColorDelay(delay,indic){
+    getColorDelay(delay){
         let index = Math.floor(delay/this.delay)%this.colors.length;
         let previousColor = this.colors[index];
         let nextColor = this.colors[(index+1)%this.colors.length]
@@ -279,6 +291,10 @@ class ColorCycler{
         this.previousColor = this.colors[this.previousIndex];
         this.currentColor = this.previousColor;
         this.nextColor = this.colors[this.currentIndex];
+        this.updateVelocities()
+    }
+
+    updateVelocities(){
         let vRed   = (this.nextColor[0]-this.previousColor[0])/this.delay
         let vGreen = (this.nextColor[1]-this.previousColor[1])/this.delay
         let vBlue  = (this.nextColor[2]-this.previousColor[2])/this.delay
@@ -311,7 +327,12 @@ class ColorCycler{
             this.updateNextColor();
         }
     }
-
+    
+    changeDelay(amount){
+        this.delay = Math.max(Math.min(this.delay + amount,this.MAX_DELAY),this.MIN_DELAY)
+        console.log(this.delay)
+        this.updateVelocities()
+    }
 }
 
 class ColorPicker{
@@ -363,7 +384,7 @@ class ColorPicker{
     drawColorLine(){
         let endX = this.colorLinePickerAbsoluteX + this.width*this.colorBarWidthScale
         for(let i = this.colorLinePickerAbsoluteX; i < endX; i++) {
-            stroke(this.colorCycler.getColorDelay(i-this.colorLinePickerAbsoluteX,false))
+            stroke(this.colorCycler.getColorDelay(i-this.colorLinePickerAbsoluteX))
             line(i,this.yPosition+(1-this.colorBarHeightScale-this.colorBarBufferBottom)*this.height,i,this.yPosition+(1-this.colorBarBufferBottom)*this.height);
         }
         noStroke()
@@ -401,7 +422,7 @@ class ColorPicker{
         if(mouseIsPressed && mouseX > this.colorLinePickerAbsoluteX && mouseX < this.colorLinePickerAbsoluteX + this.width*this.colorBarWidthScale &&
             mouseY > this.colorPalettePickerAbsoluteY + this.height*this.colorPaletteHeightScale){
             this.colorLinePickerRelativeX = mouseX-this.colorLinePickerAbsoluteX;
-            this.colorLinePickerColor = this.colorCycler.getColorDelay(this.colorLinePickerRelativeX,true)
+            this.colorLinePickerColor = this.colorCycler.getColorDelay(this.colorLinePickerRelativeX)
             this.updateColorPalettePickerColor()
             this.draw()
         }
