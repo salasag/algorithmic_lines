@@ -6,7 +6,7 @@ let FPS = 60;
 let objects = [];
 let isMousePreviouslyPressed = false;
 let speedRange = 8;
-let sizeRange = 100;
+let sizeRange = 200;
 let counter = 0;
 let reflectionFactor = 1;
 let currentColor = [100,100,100]
@@ -31,6 +31,7 @@ let colorCycleBuilder;
 let COLORCYCLEBUILDER_HEIGHT = COLORPICKER_HEIGHT;
 let cursorSize = 10;
 let cnv;
+let alpha = 127;
 
 function setup(){
     CANVAS_HEIGHT = windowHeight;
@@ -47,13 +48,13 @@ function setup(){
 }
 
 function handleDelayChange(event){
-    getColorCycler().changeDelay((event.deltaY)/10)
+    getColorCycler().changeDelay(Math.floor((event.deltaY)/10))
 }
 
 function setupObjects(){
     colorPicker = new ColorPicker(CANVAS_WIDTH+1,CANVAS_HEIGHT-COLORPICKER_HEIGHT,SIDEBAR_WIDTH,COLORPICKER_HEIGHT)
     colorPicker.draw();
-    colorCycleBuilder = new ColorCycleBuilder(CANVAS_WIDTH+1,CANVAS_HEIGHT-COLORPICKER_HEIGHT-COLORCYCLEBUILDER_HEIGHT,SIDEBAR_WIDTH,COLORCYCLEBUILDER_HEIGHT)
+    colorCycleBuilder = new ColorCycleBuilder(CANVAS_WIDTH+1,CANVAS_HEIGHT-COLORPICKER_HEIGHT-COLORCYCLEBUILDER_HEIGHT,SIDEBAR_WIDTH,COLORCYCLEBUILDER_HEIGHT,0,0,CANVAS_WIDTH,CANVAS_HEIGHT)
     colorCycleBuilder.draw();
 }
 
@@ -159,6 +160,7 @@ function drawCover(){
     }
     else if(pmouseX < CANVAS_WIDTH){
         colorPicker.draw()
+        colorCycleBuilder.draw()
     }
 }
 
@@ -167,7 +169,9 @@ function handleCollisions(){
         objects.map(obj2 => {
             if(isCollisionCircle(obj1.xPosition,obj1.yPosition,obj1.width,obj2.xPosition,obj2.yPosition,obj2.width)){
                 stroke(currentColor)
-                line(obj1.xPosition, obj1.yPosition, obj2.xPosition, obj2.yPosition);
+                if(obj1.xPosition!=obj1.yPosition||obj2.xPosition!=obj2.yPosition){
+                    line(obj1.xPosition, obj1.yPosition, obj2.xPosition, obj2.yPosition);
+                }
             }
         });
     });
@@ -193,7 +197,17 @@ function handleMouseClick(){
         objects = []
     }
     colorPicker.handleClick(mouseX,mouseY,mouseIsPressed,isMousePreviouslyPressed)
-    colorCycleBuilder.handleClick(mouseX,mouseY,mouseIsPressed,isMousePreviouslyPressed,colorPicker.getColor());
+    let cycleBuilderSignal = colorCycleBuilder.handleClick(mouseX,mouseY,mouseIsPressed,isMousePreviouslyPressed,colorPicker.getColor());
+    if(cycleBuilderSignal == "CLEAR_SCREEN"){
+        clearScreen()
+    }
+}
+
+function clearScreen(){
+    stroke(0)
+    fill(255)
+    rect(0,0,CANVAS_WIDTH,CANVAS_HEIGHT)
+    objects = []
 }
 
 function isCollisionRectangle(x1,width1,y1,height1,x2,width2,y2,height2){
@@ -332,7 +346,6 @@ class ColorCycler{
     
     changeDelay(amount){
         this.delay = Math.max(Math.min(this.delay + amount,this.MAX_DELAY),this.MIN_DELAY)
-        console.log(this.delay)
         this.updateVelocities()
     }
 }
@@ -520,24 +533,27 @@ class ColorCycleBuilder{
     drawButtons(){
         stroke(0)
         fill(this.pickedColor)
-        rect(this.xPosition,this.yPosition+(1-this.buttonHeightScale)*this.height,this.width/2,this.height*this.buttonHeightScale)
-        rect(this.xPosition+this.width/2,this.yPosition+(1-this.buttonHeightScale)*this.height,this.width/2,this.height*this.buttonHeightScale)
+        rect(this.xPosition,this.yPosition+(1-this.buttonHeightScale)*this.height,this.width/3,this.height*this.buttonHeightScale)
+        rect(this.xPosition+this.width/3,this.yPosition+(1-this.buttonHeightScale)*this.height,this.width/3,this.height*this.buttonHeightScale)
+        rect(this.xPosition+this.width*2/3,this.yPosition+(1-this.buttonHeightScale)*this.height,this.width/3,this.height*this.buttonHeightScale)
         fill(255)
         textSize(25);
-        text("+",this.xPosition+this.width/4,this.yPosition+(1-this.buttonHeightScale/2)*this.height)
+        text("+",this.xPosition+this.width/6,this.yPosition+(1-this.buttonHeightScale/2)*this.height)
         if(this.continuousDraw){
             fill(127)
         }
         else{
             fill(255)
         }
-        rect(this.xPosition+this.width*.7,this.yPosition+(1-this.buttonHeightScale*.6)*this.height,this.width/2*.2,this.height*this.buttonHeightScale*.2)
+        rect(this.xPosition+this.width*(1/3)*(1+2/5),this.yPosition+(1-this.buttonHeightScale*.6)*this.height,this.width/3*1/5,this.height*this.buttonHeightScale*1/5)
+        text("x",this.xPosition+this.width*5/6,this.yPosition+(1-this.buttonHeightScale/2)*this.height)
         stroke(this.pickedColor)
     }
 
     handleClick(mouseX,mouseY,mouseIsPressed,isMousePreviouslyPressed,color){
         this.pickedColor = color
-        if(mouseIsPressed && !isMousePreviouslyPressed && mouseX > this.xPosition && mouseX < this.xPosition + this.width/2 &&
+        // 
+        if(mouseIsPressed && !isMousePreviouslyPressed && mouseX > this.xPosition && mouseX < this.xPosition + this.width/3 &&
            mouseY > this.yPosition + (1-this.buttonHeightScale)*this.height && mouseY < this.yPosition + this.height){
             if(this.colorCycler==undefined){
                 this.colorCycler = new ColorCycler([color],500)
@@ -545,11 +561,20 @@ class ColorCycleBuilder{
             else{
                 this.colorCycler.addColor(this.pickedColor)
             }
+            this.draw();
         }
-        else if(mouseIsPressed && !isMousePreviouslyPressed && mouseX > this.xPosition + this.width/2 && mouseX < this.xPosition + this.width &&
+        // Toggle Continuous Draw
+        else if(mouseIsPressed && !isMousePreviouslyPressed && mouseX > this.xPosition + this.width/3 && mouseX < this.xPosition + this.width*2/3 &&
            mouseY > this.yPosition + (1-this.buttonHeightScale)*this.height && mouseY < this.yPosition + this.height){
             this.continuousDraw = !this.continuousDraw
+            this.draw()
         }
+        // Clear Screen
+        else if(mouseIsPressed && !isMousePreviouslyPressed && mouseX > this.xPosition + this.width*2/3 && mouseX < this.xPosition + this.width &&
+           mouseY > this.yPosition + (1-this.buttonHeightScale)*this.height && mouseY < this.yPosition + this.height){
+            return "CLEAR_SCREEN"
+        }
+        // Delete custom color
         else if(mouseIsPressed && !isMousePreviouslyPressed && mouseX > this.xPosition && mouseX < this.xPosition + this.width &&
             mouseY < this.yPosition + (1-this.buttonHeightScale)*this.height && mouseY > this.yPosition &&
             this.colorCycler!=undefined){
@@ -563,7 +588,8 @@ class ColorCycleBuilder{
             if(this.colorCycler.getColors().length==0){
                 this.colorCycler=undefined;
             }
+            this.draw();
         }
-        this.draw()
+        //this.draw()
     }
 }
