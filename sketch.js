@@ -111,9 +111,11 @@ function drawObjects(){
         currentObject.move();
         currentObject.draw();
     });
+    push()
     drawColorBar();
     drawTextBox();
     drawCover();
+    pop()
 }
 
 function drawColorBar(){
@@ -171,12 +173,20 @@ function handleCollisions(){
             if(isCollisionCircle(obj1.xPosition,obj1.yPosition,obj1.width,obj2.xPosition,obj2.yPosition,obj2.width)){
                 stroke(currentColor)
                 if(obj1.xPosition!=obj2.xPosition||obj1.yPosition!=obj2.yPosition){
+                    let dist = distance(obj1.xPosition,obj1.yPosition,obj2.xPosition,obj2.yPosition)
                     if(obj1.type+obj2.type==0 || obj1.type+obj2.type==2){
                         noFill()
-                        ellipse((obj1.xPosition+obj2.xPosition)/2,(obj1.yPosition+obj2.yPosition)/2,distance(obj1.xPosition,obj1.yPosition,obj2.xPosition,obj2.yPosition))
+                        ellipse((obj1.xPosition+obj2.xPosition)/2,(obj1.yPosition+obj2.yPosition)/2,dist)
                     }
                     else{
                         line(obj1.xPosition, obj1.yPosition, obj2.xPosition, obj2.yPosition);
+                        //stroke(255-currentColor[0],255-currentColor[1],255-currentColor[2])
+                        // stroke(currentColor[0]-50,currentColor[1]-50,currentColor[2]-50)
+                        // for(let i = 0; i < 50; i++){
+                        //     let x = (obj1.xPosition+obj2.xPosition)/2 + (2*Math.random()-1)*dist;
+                        //     let y = (obj1.yPosition+obj2.yPosition)/2 + (2*Math.random()-1)*dist;
+                        //     point(x,y)
+                        // }
                     }
                 }
             }
