@@ -86,6 +86,7 @@ function initColor(){
 function getNewColor(){
     getColorCycler().cycleColor();
     currentColor = getColorCycler().getColor();
+    currentColor.push(50)
 }
 
 function getColorCycler(){
@@ -169,8 +170,14 @@ function handleCollisions(){
         objects.map(obj2 => {
             if(isCollisionCircle(obj1.xPosition,obj1.yPosition,obj1.width,obj2.xPosition,obj2.yPosition,obj2.width)){
                 stroke(currentColor)
-                if(obj1.xPosition!=obj1.yPosition||obj2.xPosition!=obj2.yPosition){
-                    line(obj1.xPosition, obj1.yPosition, obj2.xPosition, obj2.yPosition);
+                if(obj1.xPosition!=obj2.xPosition||obj1.yPosition!=obj2.yPosition){
+                    if(obj1.type+obj2.type==0 || obj1.type+obj2.type==2){
+                        noFill()
+                        ellipse((obj1.xPosition+obj2.xPosition)/2,(obj1.yPosition+obj2.yPosition)/2,distance(obj1.xPosition,obj1.yPosition,obj2.xPosition,obj2.yPosition))
+                    }
+                    else{
+                        line(obj1.xPosition, obj1.yPosition, obj2.xPosition, obj2.yPosition);
+                    }
                 }
             }
         });
@@ -185,7 +192,7 @@ function handleCounter(){
 function handleMouseClick(){
     if(mouseIsPressed && counter%5 == 0 && mouseX < CANVAS_WIDTH && mouseX > 0 && mouseY < CANVAS_HEIGHT && mouseY > 0){
         let radius = Math.random()*sizeRange;
-        objects.push(new PhysicsObject(mouseX,mouseY,Math.random()*speedRange-speedRange/2,Math.random()*speedRange-speedRange/2,0,0,radius,radius))
+        objects.push(new PhysicsObject(mouseX,mouseY,Math.random()*speedRange-speedRange/2,Math.random()*speedRange-speedRange/2,0,0,radius,radius,Math.floor(Math.random()*2)))
         if(objects.length > 50){
             objects.shift();
         }
@@ -216,12 +223,16 @@ function isCollisionRectangle(x1,width1,y1,height1,x2,width2,y2,height2){
 }
 
 function isCollisionCircle(x1,y1,r1,x2,y2,r2){
-    return sqrt((x1-x2)*(x1-x2)+(y1-y2)*(y1-y2)) < r1+r2;
+    return distance(x1,y1,x2,y2) < r1+r2;
+}
+
+function distance(x1,y1,x2,y2){
+    return sqrt((x1-x2)*(x1-x2)+(y1-y2)*(y1-y2));
 }
 
 class PhysicsObject{
 
-    constructor(initXPosition,initYPosition,initXVelocity,initYVelocity,initXAcceleration,initYAcceleration,initWidth,initHeight){
+    constructor(initXPosition,initYPosition,initXVelocity,initYVelocity,initXAcceleration,initYAcceleration,initWidth,initHeight,type){
         this.xPosition = initXPosition;
         this.yPosition = initYPosition;
         this.xVelocity = initXVelocity;
@@ -231,6 +242,7 @@ class PhysicsObject{
         this.width = initWidth;
         this.height = initHeight
         this.color = [0,0,0];
+        this.type = type
     }
 
     move(){
